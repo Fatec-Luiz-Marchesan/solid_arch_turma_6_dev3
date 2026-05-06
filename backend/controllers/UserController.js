@@ -130,8 +130,6 @@ module.exports = class UserController {
     }
 
     static async editUser(req, res) {
-        const id = req.params.id
-
         const token = getToken(req)
         const user = await getUserByToken(token)
 
@@ -142,6 +140,7 @@ module.exports = class UserController {
             res.status(422).json({ message: 'Nome é obrigatório' })
             return
         }
+        user.name = name
 
         if (!email) {
             res.status(422).json({ message: 'Email é obrigatório' })
@@ -153,30 +152,21 @@ module.exports = class UserController {
             return
         }
 
-        if (!password) {
-            res.status(422).json({ message: 'Senha é obrigatória' })
+        const userExists = await User.findOne({ email: email })
+
+        if (user.email !== email && userExists) {
+            res.status(422).json({
+                message: 'Existe um problema de chave e-mail com a edição.'
+            })
             return
         }
 
-        if (!confirmpassword) {
-            res.status(422).json({ message: 'Confirmação de senha é obrigatória' })
-            return
-        }
+        user.email = email
 
         if (password !== confirmpassword) {
             res.status(422).json({ message: 'As senhas não coincidem' })
             return
         }
-
-        const userExists = await User.findOne({ email: email })
-
-        if (userExists.email === email && userExists) {
-            res.status(422).json({ message: 'Existe um problema de chave e-mail com a edição.' })
-            return
-        }
-
-        const salt = await bcrypt.genSalt(12)
-        const passwordHash = await bcrypt.hash(password, salt)
     }
 
 }
