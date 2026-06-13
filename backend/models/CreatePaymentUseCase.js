@@ -1,5 +1,4 @@
 import { CreatePaymentUseCase } from "./CreatePaymentUseCase";
-import { Payment } from "../../../entities/Payment";
 import { Order } from "../../../entities/Order";
 
 describe("CreatePaymentUseCase (Unit Tests - JS)", () => {
