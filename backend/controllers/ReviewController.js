@@ -23,12 +23,11 @@ class ReviewController {
 
   async list(req, res) {
     try {
-      const { page, limit, minRating, petId } = req.query;
+      const { page, limit, minRating } = req.query;
       const result = await this.listReviewsUseCase.execute({
         page: page ? Number(page) : undefined,
         limit: limit ? Number(limit) : undefined,
-        minRating: minRating ? Number(minRating) : undefined,
-        petId,
+        minRating: minRating ? Number(minRating) : undefined
       });
       return res.json(result);
     } catch (err) {

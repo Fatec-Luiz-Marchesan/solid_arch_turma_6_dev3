@@ -6,7 +6,7 @@ class ListReviewsUseCase {
     this.reviewRepository = reviewRepository;
   }
 
-  async execute({ page = 1, limit = 20, minRating, petId } = {}) {
+  async execute({ page = 1, limit = 20, minRating, } = {}) {
     const p = Number(page);
     const l = Number(limit);
 
