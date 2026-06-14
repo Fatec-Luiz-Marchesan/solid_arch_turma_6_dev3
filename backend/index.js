@@ -1,22 +1,20 @@
-const express = require('express')
-const cors = require('cors')
+const express = require("express");
+const cors = require("cors");
 
-const app = express()
+const app = express();
 
-// Config JSON response
-app.use(express.json())
+app.use(express.json());
 
-// Solve CORS
-app.use(cors({ credentials: true, origin: 'http://localhost:3000' }))
+app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 
-// Public folder for images
-app.use(express.static('public'))
+app.use(express.static("public"));
 
-// Routes
-const PetRoutes = require('./routes/PetRoutes')
-const UserRoutes = require('./routes/UserRoutes')
+const PetRoutes = require("./routers/PetRouters");
+const UserRoutes = require("./routers/UserRouters");
+const ReviewRoutes = require("./routers/ReviewRouters");
 
-app.use('/pets', PetRoutes)
-app.use('/users', UserRoutes)
+app.use("/pets", PetRoutes);
+app.use("/users", UserRoutes);
+app.use("/reviews", ReviewRoutes);
 
-app.listen(5000)
+app.listen(5000);

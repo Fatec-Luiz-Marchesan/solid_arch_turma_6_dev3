@@ -1,12 +1,12 @@
 const Pet = require('../models/Pet')
 
-// helpers
+
 const getUserByToken = require('../helpers/get-user-by-token')
 const getToken = require('../helpers/get-token')
 const ObjectId = require('mongoose').Types.ObjectId
 
 module.exports = class PetController {
-  // create a pet
+
   static async create(req, res) {
     const name = req.body.name
     const age = req.body.age
