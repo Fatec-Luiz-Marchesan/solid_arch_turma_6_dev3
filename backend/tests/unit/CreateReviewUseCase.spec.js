@@ -1,4 +1,4 @@
-import { CreateReviewUseCase } from "./CreateReviewUseCase";
+const { CreateReviewUseCase } = require("../../models/CreateReviewUseCase");
 
 describe("CreateReviewUseCase (Unit Tests - JS)", () => {
   let sut;
@@ -23,6 +23,23 @@ describe("CreateReviewUseCase (Unit Tests - JS)", () => {
 
       expect(result.id).toBe("rev-1");
       expect(result.rating).toBe(5);
+      expect(result.recommend).toBe(true); // Default to true
+      expect(mockReviewRepository.create).toHaveBeenCalledTimes(1);
+    });
+
+    it("should successfully create a review with recommend as false", async () => {
+      const requestData = {
+        userId: "u1",
+        petId: "p1",
+        rating: 4,
+        recommend: false,
+      };
+
+      const result = await sut.execute(requestData);
+
+      expect(result.id).toBe("rev-1");
+      expect(result.rating).toBe(4);
+      expect(result.recommend).toBe(false);
       expect(mockReviewRepository.create).toHaveBeenCalledTimes(1);
     });
 
