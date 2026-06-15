@@ -6,7 +6,7 @@ describe("ListAdminsUseCase", () => {
       findAll: jest.fn().mockResolvedValue([{ id: "a1", name: "Admin 1" }]),
     };
     cacheGateway = {
-      get: jest.fn().mockResolvedValue(null), // MISS por padrao
+      get: jest.fn().mockResolvedValue(null), 
       set: jest.fn().mockResolvedValue(undefined),
     };
     usecase = new ListAdminsUseCase({ adminRepository, cacheGateway });
