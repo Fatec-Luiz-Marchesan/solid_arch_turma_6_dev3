@@ -25,12 +25,18 @@ const reviewController = new ReviewController({
   deleteReviewUseCase,
 });
 
-const { getRedisClient, closeRedisClient } = require('./infrastructure/adapters/cache/redisClient');
-const RedisCacheAdapter = require('./infrastructure/adapters/cache/RedisCacheAdapter');
-const ListAdminsUseCase = require('./domain/usecases/ListAdminsUseCase');
+const {
+  getRedisClient,
+  closeRedisClient,
+} = require("./infrastructure/adapters/cache/redisClient");
+const RedisCacheAdapter = require("./infrastructure/adapters/cache/RedisCacheAdapter");
+const ListAdminsUseCase = require("./domain/usecases/ListAdminsUseCase");
 const redisClient = getRedisClient();
 const cacheGateway = new RedisCacheAdapter(redisClient);
-const listAdminsUseCase = new ListAdminsUseCase({ adminRepository, cacheGateway });
+const listAdminsUseCase = new ListAdminsUseCase({
+  adminRepository,
+  cacheGateway,
+});
 
 app.use("/pets", PetRoutes);
 app.use("/users", UserRoutes);
@@ -38,3 +44,25 @@ app.use("/reviews", ReviewRoutes);
 app.use("/admins", makeAdminRouter(listAdminsUseCase));
 
 app.listen(5000);
+
+const DietMongoRepository = require("./infrastructure/repositories/DietMongoRepository");
+const {
+  CreateDietUseCase,
+  GetActiveDietForPetUseCase,
+  ListDietsUseCase,
+  UpdateDietUseCase,
+} = require("./domain/usecases/CreateDietUseCase");
+const DietController = require("./interface/controllers/DietController");
+const makeDietRouter = require("./interface/routes/dietRoutes");
+
+const dietRepository = new DietMongoRepository();
+const dietController = new DietController({
+  createDietUseCase: new CreateDietUseCase({ dietRepository }),
+  listDietsUseCase: new ListDietsUseCase({ dietRepository }),
+  getActiveDietForPetUseCase: new GetActiveDietForPetUseCase({
+    dietRepository,
+  }),
+  updateDietUseCase: new UpdateDietUseCase({ dietRepository }),
+});
+
+app.use("/api/diets", makeDietRouter(dietController));

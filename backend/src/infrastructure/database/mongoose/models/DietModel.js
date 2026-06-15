@@ -23,13 +23,11 @@ const DietSchema = new mongoose.Schema(
     notes: { type: String, trim: true, default: "" },
     startDate: { type: Date, required: true, default: Date.now },
     endDate: { type: Date, default: null },
-
     frequency: {
       type: String,
       enum: ["daily", "weekly", "custom"],
       default: "daily",
     },
-
     targetWeight: {
       type: Number,
       min: [0.1, "targetWeight deve ser maior que 0"],
@@ -42,11 +40,13 @@ const DietSchema = new mongoose.Schema(
 DietSchema.index({ petId: 1, startDate: -1 });
 
 DietSchema.pre("validate", function (next) {
-  const typesWithTarget = ["hypocaloric", "therapeutic"];
-  if (this.targetWeight != null && !typesWithTarget.includes(this.type)) {
+  if (
+    this.targetWeight != null &&
+    !["hypocaloric", "therapeutic"].includes(this.type)
+  ) {
     this.invalidate(
       "targetWeight",
-      `targetWeight so e permitido para dietas dos tipos: ${typesWithTarget.join(", ")}`,
+      "targetWeight so e permitido para tipos hypocaloric ou therapeutic",
     );
   }
   next();
