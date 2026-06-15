@@ -66,3 +66,5 @@ const dietController = new DietController({
 });
 
 app.use("/api/diets", makeDietRouter(dietController));
+
+app.use("/uploads", express.static("uploads"));

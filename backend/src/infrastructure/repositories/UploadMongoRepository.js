@@ -1,11 +1,17 @@
-const UploadModel = require('../models/UploadModel');
+const UploadModel = require("../database/mongoose/models/UploadModel");
 
 class UploadMongoRepository {
   async create(data) {
-    const upload = new UploadModel(data);
-    await upload.save();
-    return upload.toObject();
+    return UploadModel.create(data);
+  }
+
+  async findByOwner(ownerId) {
+    return UploadModel.find({ ownerId });
+  }
+
+  async delete(id) {
+    return UploadModel.findByIdAndDelete(id);
   }
 }
 
-module.exports = UploadMongoRepository;
+module.exports = UploadMongoReposito;

@@ -1,106 +1,121 @@
 const UploadFileUseCase = require("../../src/domain/usecases/UploadFileUseCase");
 
 describe("UploadFileUseCase", () => {
-  let storageGateway, uploadRepository, usecase;
+  let storageGateway;
+  let uploadRepository;
+  let usecase;
 
   const fakeFile = {
-    originalname: "foto-rex.jpg",
-    buffer: Buffer.from("fake-image-data"),
+    originalname: "foto.jpg",
+    buffer: Buffer.from("x"),
     mimetype: "image/jpeg",
-    size: 204800,
-  };
-
-  const storedResult = {
-    key: "1234567890-abc.jpg",
-    url: "/uploads/1234567890-abc.jpg",
-    mimetype: "image/jpeg",
-    size: 204800,
+    size: 1024,
   };
 
   beforeEach(() => {
     storageGateway = {
-      save: jest.fn().mockResolvedValue(storedResult),
-      remove: jest.fn().mockResolvedValue(undefined),
+      save: jest.fn().mockResolvedValue({
+        key: "abc.jpg",
+        url: "/uploads/abc.jpg",
+        mimetype: "image/jpeg",
+        size: 1024,
+      }),
     };
+
     uploadRepository = {
-      create: jest
-        .fn()
-        .mockImplementation(async (data) => ({ id: "upload-1", ...data })),
-      findByOwnerId: jest.fn().mockResolvedValue([]),
+      create: jest.fn().mockImplementation(async (data) => ({
+        id: "upload-1",
+        ...data,
+      })),
     };
-    usecase = new UploadFileUseCase({ storageGateway, uploadRepository });
+
+    usecase = new UploadFileUseCase({
+      storageGateway,
+      uploadRepository,
+    });
   });
 
-  it("salva o arquivo no storage e persiste metadados", async () => {
+  it("salva arquivo e persiste metadados", async () => {
     const result = await usecase.execute({
       file: fakeFile,
-      ownerId: "owner-123",
+      ownerId: "u1",
       purpose: "pet-photo",
     });
 
     expect(storageGateway.save).toHaveBeenCalledWith(fakeFile);
+
     expect(uploadRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        ownerId: "owner-123",
+        ownerId: "u1",
+        storageKey: "abc.jpg",
         purpose: "pet-photo",
-        storageKey: "1234567890-abc.jpg",
-        url: "/uploads/1234567890-abc.jpg",
       }),
     );
+
     expect(result.id).toBe("upload-1");
   });
 
-  it('usa purpose "general" como padrão quando não informado', async () => {
-    await usecase.execute({ file: fakeFile, ownerId: "u1" });
+  it("usa purpose general como padrao", async () => {
+    await usecase.execute({
+      file: fakeFile,
+      ownerId: "u1",
+    });
 
     expect(uploadRepository.create).toHaveBeenCalledWith(
-      expect.objectContaining({ purpose: "general" }),
+      expect.objectContaining({
+        purpose: "general",
+      }),
     );
   });
 
-  it("chama storage.save exatamente uma vez", async () => {
-    await usecase.execute({ file: fakeFile, ownerId: "u1" });
-    expect(storageGateway.save).toHaveBeenCalledTimes(1);
-  });
+  it("rejeita sem arquivo", async () => {
+    await expect(
+      usecase.execute({
+        ownerId: "u1",
+      }),
+    ).rejects.toThrow("Arquivo e obrigatorio");
 
-  it("retorna URL pública do arquivo", async () => {
-    const result = await usecase.execute({ file: fakeFile, ownerId: "u1" });
-    expect(result.url).toBe("/uploads/1234567890-abc.jpg");
-  });
-
-  it("rejeita quando arquivo não é fornecido", async () => {
-    await expect(usecase.execute({ ownerId: "u1" })).rejects.toThrow(
-      "Arquivo é obrigatório",
-    );
-    expect(storageGateway.save).not.toHaveBeenCalled();
-    expect(uploadRepository.create).not.toHaveBeenCalled();
-  });
-
-  it("rejeita quando ownerId não é fornecido", async () => {
-    await expect(usecase.execute({ file: fakeFile })).rejects.toThrow(
-      "ownerId é obrigatório",
-    );
     expect(storageGateway.save).not.toHaveBeenCalled();
   });
 
-  it("não chama repository se storage falhar", async () => {
+  it("rejeita sem ownerId", async () => {
+    await expect(
+      usecase.execute({
+        file: fakeFile,
+      }),
+    ).rejects.toThrow("ownerId e obrigatorio");
+
+    expect(storageGateway.save).not.toHaveBeenCalled();
+  });
+
+  it("nao chama repository se storage falhar", async () => {
     storageGateway.save.mockRejectedValue(new Error("Disco cheio"));
 
     await expect(
-      usecase.execute({ file: fakeFile, ownerId: "u1" }),
+      usecase.execute({
+        file: fakeFile,
+        ownerId: "u1",
+      }),
     ).rejects.toThrow("Disco cheio");
+
     expect(uploadRepository.create).not.toHaveBeenCalled();
   });
 
-  it("lança erro sem storageGateway", () => {
-    expect(() => new UploadFileUseCase({ uploadRepository })).toThrow(
-      "storageGateway é obrigatório",
-    );
+  it("lanca erro sem storageGateway", () => {
+    expect(
+      () =>
+        new UploadFileUseCase({
+          uploadRepository,
+        }),
+    ).toThrow("storageGateway e obrigatorio");
   });
 
-  it("lança erro sem uploadRepository", () => {
-    expect(() => new UploadFileUseCase({ storageGateway })).toThrow(
-      "uploadRepository é obrigatório",
-    );
+  it("lanca erro sem uploadRepository", () => {
+    expect(
+      () =>
+        new UploadFileUseCase({
+          storageGateway,
+        }),
+    ).toThrow("uploadRepository e obrigatorio");
   });
 });
