@@ -1,4 +1,4 @@
-const { validateReviewPayload } = require("../helpers/validateReview");
+const { validateReviewPayload } = require("../../../helpers/validateReview");
 
 class ReviewController {
   constructor({ createReviewUseCase, listReviewsUseCase, getReviewUseCase }) {
