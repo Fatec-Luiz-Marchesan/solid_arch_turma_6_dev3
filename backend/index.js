@@ -25,9 +25,16 @@ const reviewController = new ReviewController({
   deleteReviewUseCase,
 });
 
+const { getRedisClient, closeRedisClient } = require('./infrastructure/adapters/cache/redisClient');
+const RedisCacheAdapter = require('./infrastructure/adapters/cache/RedisCacheAdapter');
+const ListAdminsUseCase = require('./domain/usecases/ListAdminsUseCase');
+const redisClient = getRedisClient();
+const cacheGateway = new RedisCacheAdapter(redisClient);
+const listAdminsUseCase = new ListAdminsUseCase({ adminRepository, cacheGateway });
+
 app.use("/pets", PetRoutes);
 app.use("/users", UserRoutes);
 app.use("/reviews", ReviewRoutes);
-app.use("/reviews", makeReviewRouter(reviewController));
+app.use("/admins", makeAdminRouter(listAdminsUseCase));
 
 app.listen(5000);

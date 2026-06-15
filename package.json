@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "ioredis": "^5.11.1",
     "jest": "^30.4.2"
   }
 }
