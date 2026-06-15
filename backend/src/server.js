@@ -5,6 +5,11 @@ const UploadMongoRepository = require('./infrastructure/repositories/UploadMongo
 const UploadFileUseCase = require('./domain/usecases/UploadFileUseCase');
 const UploadController = require('./interface/controllers/UploadController');
 const makeUploadRouter = require('./interface/routes/uploadRoutes');
+const LocationMongoRepository = require('./infrastructure/repositories/LocationMongoRepository');
+const CreateLocationUseCase = require('./domain/usecases/CreateLocationUseCase');
+const FindNearbyLocationsUseCase = require('./domain/usecases/FindNearbyLocationsUseCase');
+const LocationController = require('./interface/controllers/LocationController');
+const makeLocationRouter = require('./interface/routes/locationRoutes');
 
 const app = express();
 
@@ -14,6 +19,13 @@ const storageGateway = new LocalStorageAdapter({ uploadDir: './uploads' });
 const uploadRepository = new UploadMongoRepository();
 const uploadFileUseCase = new UploadFileUseCase({ storageGateway, uploadRepository });
 const uploadController = new UploadController({ uploadFileUseCase });
+const locationRepository = new LocationMongoRepository();
+const createLocationUseCase = new CreateLocationUseCase({ locationRepository });
+const findNearbyLocationsUseCase = new FindNearbyLocationsUseCase({ locationRepository });
+const locationController = new LocationController({
+createLocationUseCase, findNearbyLocationsUseCase,});
+
+app.use('/api/locations', makeLocationRouter(locationController));
 
 app.use('/uploads', express.static('uploads'));
 
