@@ -71,7 +71,7 @@ module.exports = class PetController {
 
     try {
       const newPet = await pet.save();
-      await PetController.indexPet(newPet);
+
       res.status(201).json({
         message: "Pet cadastrado com sucesso!",
         newPet: newPet,
@@ -323,31 +323,19 @@ module.exports = class PetController {
     });
   }
 
-  static async search(req, res) {
-    const { searchPetsUseCase } = PetController.deps || {};
-    if (!searchPetsUseCase) {
-      return res.status(500).json({ message: "ElasticSearch nao configurado" });
-    }
+  async search(req, res) {
     try {
-      const { q, page, limit } = req.query;
-      const result = await searchPetsUseCase.execute({
+      const { q, species, city, page, limit } = req.query;
+      const result = await this.searchPetsUseCase.execute({
         q,
+        species,
+        city,
         page: parseInt(page, 10) || 1,
         limit: parseInt(limit, 10) || 20,
       });
       return res.json(result);
     } catch (err) {
-      return res.status(400).json({ message: err.message });
-    }
-  }
-
-  static async indexPet(pet) {
-    const { indexPetUseCase } = PetController.deps || {};
-    if (!indexPetUseCase) return;
-    try {
-      await indexPetUseCase.execute(pet);
-    } catch (err) {
-      console.error("[ES] Falha ao indexar pet:", err.message);
+      return res.status(400).json({ error: err.message });
     }
   }
 };
