@@ -24,8 +24,8 @@ function validateUserPayload(payload = {}, isUpdate = false) {
   }
 
   if (!isUpdate) {
-    if (!payload.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) {
-      errors.push("email inválido ou ausente");
+    if (!payload.email || !isValidEmail(payload.email)) {
+      errors.push("email invalido ou ausente");
     } else {
       data.email = payload.email.toLowerCase().trim();
     }
