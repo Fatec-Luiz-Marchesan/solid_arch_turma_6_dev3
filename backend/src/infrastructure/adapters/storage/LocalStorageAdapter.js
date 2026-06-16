@@ -8,18 +8,12 @@ class LocalStorageAdapter extends IStorageGateway {
     super();
     this.uploadDir = uploadDir;
   }
-
   async save(file) {
     await fs.mkdir(this.uploadDir, { recursive: true });
-
     const ext = path.extname(file.originalname);
-
     const key = `${Date.now()}-${crypto.randomBytes(8).toString("hex")}${ext}`;
-
     const filePath = path.join(this.uploadDir, key);
-
     await fs.writeFile(filePath, file.buffer);
-
     return {
       key,
       path: filePath,
@@ -28,16 +22,13 @@ class LocalStorageAdapter extends IStorageGateway {
       mimetype: file.mimetype,
     };
   }
-
   async remove(key) {
     const filePath = path.join(this.uploadDir, key);
-
     try {
       await fs.unlink(filePath);
     } catch (err) {
-      if (err.code !== "ENOENT") throw err;
+      if (err.code == "ENOENT") throw err;
     }
   }
 }
-
 module.exports = LocalStorageAdapter;
