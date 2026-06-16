@@ -20,7 +20,7 @@ const UserSchema = new mongoose.Schema(
     phoneNumber: {
       type: String,
       trim: true,
-      match: [/^\(\d{2}\) \d{4,5}-\d{4}$/, "Formato invalido"],
+      match: [/^\(\d{2}\) \d{4,5}-\d{4}$/, "Formato inválido"],
       default: null,
     },
     image: { type: String, default: null },
