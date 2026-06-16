@@ -3,13 +3,13 @@ const { validateUserPayload } = require("../helpers/validateUser");
 class UserController {
   constructor({
     createUserUseCase,
-    getUserUseCase,
     updateUserUseCase,
+    getUserUseCase,
     deleteUserUseCase,
   }) {
     this.createUserUseCase = createUserUseCase;
-    this.getUserUseCase = getUserUseCase;
     this.updateUserUseCase = updateUserUseCase;
+    this.getUserUseCase = getUserUseCase;
     this.deleteUserUseCase = deleteUserUseCase;
   }
 
@@ -20,19 +20,8 @@ class UserController {
       const user = await this.createUserUseCase.execute(data);
       return res.status(201).json(user);
     } catch (err) {
-      const code = err.message.includes("Email ja existe") ? 409 : 400;
+      const code = err.message.includes("já existe") ? 409 : 400;
       return res.status(code).json({ error: err.message });
-    }
-  }
-
-  async getById(req, res) {
-    try {
-      const user = await this.getUserUseCase.execute(req.params.id);
-      if (!user)
-        return res.status(404).json({ error: "Usuario nao encontrado" });
-      return res.json(user);
-    } catch (err) {
-      return res.status(400).json({ error: err.message });
     }
   }
 
@@ -45,18 +34,24 @@ class UserController {
         ...data,
       });
       if (!updated)
-        return res.status(404).json({ error: "Usuario nao encontrado" });
+        return res.status(404).json({ error: "Usuário não encontrado" });
       return res.json(updated);
     } catch (err) {
       return res.status(400).json({ error: err.message });
     }
   }
 
+  async getById(req, res) {
+    const user = await this.getUserUseCase.execute(req.params.id);
+    if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
+    return res.json(user);
+  }
+
   async delete(req, res) {
     try {
       const deleted = await this.deleteUserUseCase.execute(req.params.id);
       if (!deleted)
-        return res.status(404).json({ error: "Usuario nao encontrado" });
+        return res.status(404).json({ error: "Usuário não encontrado" });
       return res.status(204).send();
     } catch (err) {
       return res.status(400).json({ error: err.message });
