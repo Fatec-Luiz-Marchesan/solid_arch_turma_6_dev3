@@ -23,15 +23,26 @@ const reviewController = new ReviewController({
   deleteReviewUseCase,
 });
 
-const { getRedisClient, closeRedisClient } = require("./infrastructure/adapters/cache/redisClient");
+const {
+  getRedisClient,
+  closeRedisClient,
+} = require("./infrastructure/adapters/cache/redisClient");
 const RedisCacheAdapter = require("./infrastructure/adapters/cache/RedisCacheAdapter");
 const ListAdminsUseCase = require("./domain/usecases/ListAdminsUseCase");
 const redisClient = getRedisClient();
 const cacheGateway = new RedisCacheAdapter(redisClient);
-const listAdminsUseCase = new ListAdminsUseCase({ adminRepository, cacheGateway });
+const listAdminsUseCase = new ListAdminsUseCase({
+  adminRepository,
+  cacheGateway,
+});
 
 const DietMongoRepository = require("./infrastructure/repositories/DietMongoRepository");
-const { CreateDietUseCase, GetActiveDietForPetUseCase, ListDietsUseCase, UpdateDietUseCase } = require("./domain/usecases/CreateDietUseCase");
+const {
+  CreateDietUseCase,
+  GetActiveDietForPetUseCase,
+  ListDietsUseCase,
+  UpdateDietUseCase,
+} = require("./domain/usecases/CreateDietUseCase");
 const DietController = require("./interface/controllers/DietController");
 const makeDietRouter = require("./interface/routes/dietRoutes");
 
@@ -39,7 +50,9 @@ const dietRepository = new DietMongoRepository();
 const dietController = new DietController({
   createDietUseCase: new CreateDietUseCase({ dietRepository }),
   listDietsUseCase: new ListDietsUseCase({ dietRepository }),
-  getActiveDietForPetUseCase: new GetActiveDietForPetUseCase({ dietRepository }),
+  getActiveDietForPetUseCase: new GetActiveDietForPetUseCase({
+    dietRepository,
+  }),
   updateDietUseCase: new UpdateDietUseCase({ dietRepository }),
 });
 
@@ -60,6 +73,21 @@ const newUserController = new NewUserController({
   updateUserUseCase: new UpdateUserUseCase({ userRepository, hashGateway }),
   deleteUserUseCase: new DeleteUserUseCase({ userRepository }),
 });
+
+const {
+  getESClient,
+} = require("./infrastructure/adapters/search/elasticsearchClient");
+const ElasticSearchAdapter = require("./infrastructure/adapters/search/ElasticSearchAdapter");
+const SearchPetsUseCase = require("./domain/usecases/SearchPetsUseCase");
+
+const esClient = getESClient();
+const searchGateway = new ElasticSearchAdapter(esClient);
+const searchPetsUseCase = new SearchPetsUseCase({ searchGateway });
+
+const PetController = require('./controllers/PetController');
+PetController.deps = { searchPetsUseCase, indexPetUseCase };
+
+app.get("/api/pets/search", (req, res) => petController.search(req, res));
 
 app.use("/pets", PetRoutes);
 app.use("/users", UserRoutes);
