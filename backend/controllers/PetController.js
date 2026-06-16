@@ -6,6 +6,24 @@ const ObjectId = require("mongoose").Types.ObjectId;
 
 module.exports = class PetController {
   static async create(req, res) {
+    const toSafeString = (val, fieldName) => {
+      if (val === undefined || val === null) return null;
+      if (typeof val !== "string") {
+        throw new Error(`${fieldName} deve ser uma string`);
+      }
+      return val;
+    };
+    let name, age, description, weight, color;
+    try {
+      name = toSafeString(req.body.name, "name");
+      age = toSafeString(req.body.age, "age");
+      description = toSafeString(req.body.description, "description");
+      weight = toSafeString(req.body.weight, "weight");
+      color = toSafeString(req.body.color, "color");
+    } catch (err) {
+      return res.status(400).json({ message: err.message });
+    }
+
     const name = req.body.name;
     const age = req.body.age;
     const description = req.body.description;
@@ -177,13 +195,40 @@ module.exports = class PetController {
   // update a pet
   static async updatePet(req, res) {
     const id = req.params.id;
-    const name = req.body.name;
-    const age = req.body.age;
-    const description = req.body.description;
-    const weight = req.body.weight;
-    const color = req.body.color;
+
+    const toSafeString = (val, fieldName) => {
+      if (val === undefined || val === null) return null;
+      if (typeof val !== "string") {
+        throw new Error(`${fieldName} deve ser uma string`);
+      }
+      return val;
+    };
+    const toSafeNumber = (val, fieldName) => {
+      if (val === undefined || val === null || val === "") return null;
+      const num = Number(val);
+      if (!Number.isFinite(num)) {
+        throw new Error(`${fieldName} deve ser um numero valido`);
+      }
+      return num;
+    };
+    const toSafeBool = (val) => {
+      if (val === true || val === "true") return true;
+      if (val === false || val === "false") return false;
+      return null;
+    };
+
+    let name, age, description, weight, color, available;
+    try {
+      name = toSafeString(req.body.name, "name");
+      age = toSafeString(req.body.age, "age");
+      description = toSafeString(req.body.description, "description");
+      weight = toSafeString(req.body.weight, "weight");
+      color = toSafeString(req.body.color, "color");
+      available = toSafeBool(req.body.available);
+    } catch (err) {
+      return res.status(400).json({ message: err.message });
+    }
     const images = req.files;
-    const available = req.body.available;
 
     const updateData = {};
 
@@ -323,23 +368,23 @@ module.exports = class PetController {
     });
   }
 
-  
-
   static async search(req, res) {
     const { searchPetsUseCase } = PetController.deps || {};
     if (!searchPetsUseCase) {
-      return res.status(500).json({ message: 'ElasticSearch não configurado' });
+      return res.status(500).json({ message: "ElasticSearch não configurado" });
     }
 
     try {
       const rawQ = req.query.q;
 
-      if (rawQ !== undefined && typeof rawQ !== 'string') {
-        return res.status(400).json({ message: 'q deve ser uma string' });
+      if (rawQ !== undefined && typeof rawQ !== "string") {
+        return res.status(400).json({ message: "q deve ser uma string" });
       }
 
-      if (typeof rawQ === 'string' && rawQ.length > 200) {
-        return res.status(400).json({ message: 'q não pode ter mais que 200 caracteres' });
+      if (typeof rawQ === "string" && rawQ.length > 200) {
+        return res
+          .status(400)
+          .json({ message: "q não pode ter mais que 200 caracteres" });
       }
 
       const page = parseInt(req.query.page, 10);
@@ -348,7 +393,8 @@ module.exports = class PetController {
       const result = await searchPetsUseCase.execute({
         q: rawQ,
         page: Number.isInteger(page) && page > 0 ? page : 1,
-        limit: Number.isInteger(limit) && limit > 0 && limit <= 100 ? limit : 20,
+        limit:
+          Number.isInteger(limit) && limit > 0 && limit <= 100 ? limit : 20,
       });
 
       return res.json(result);
