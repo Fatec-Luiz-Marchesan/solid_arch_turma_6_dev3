@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Subir serviços com Docker Compose
+      - name: Subir servicos com Docker Compose
         run: docker compose -f docker-compose.test.yml up -d mongo redis
 
       - name: Aguardar MongoDB
@@ -32,7 +32,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
 
-      - name: Instalar dependências
+      - name: Instalar dependencias
         run: npm ci
         working-directory: backend
 
@@ -40,7 +40,7 @@ jobs:
         env:
           MONGODB_URI: mongodb://localhost:27017/solid_arch_test
           REDIS_HOST: localhost
-          NODE_ENV: test
+          REDIS_PORT: 6379
         run: npm test -- --coverage
         working-directory: backend
 
