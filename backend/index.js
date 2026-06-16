@@ -74,6 +74,21 @@ const newUserController = new NewUserController({
   deleteUserUseCase: new DeleteUserUseCase({ userRepository }),
 });
 
+const {
+  getESClient,
+} = require("./infrastructure/adapters/search/elasticsearchClient");
+const ElasticSearchAdapter = require("./infrastructure/adapters/search/ElasticSearchAdapter");
+const SearchPetsUseCase = require("./domain/usecases/SearchPetsUseCase");
+
+const esClient = getESClient();
+const searchGateway = new ElasticSearchAdapter(esClient);
+const searchPetsUseCase = new SearchPetsUseCase({ searchGateway });
+
+const PetController = require('./controllers/PetController');
+PetController.deps = { searchPetsUseCase, indexPetUseCase };
+
+app.get("/api/pets/search", (req, res) => petController.search(req, res));
+
 app.use("/pets", PetRoutes);
 app.use("/users", UserRoutes);
 app.use("/reviews", ReviewRoutes);
@@ -83,20 +98,3 @@ app.use("/api/users", makeUserRouter(newUserController));
 app.use("/uploads", express.static("uploads"));
 
 app.listen(5000);
-
-const winstonLogger = require("./infrastructure/adapters/logger/winstonLogger");
-const WinstonLoggerAdapter = require("./infrastructure/adapters/logger/WinstonLoggerAdapter");
-const AdoptionMongoRepository = require("./infrastructure/repositories/AdoptionMongoRepository");
-const CreateAdoptionUseCase = require("./domain/usecases/CreateAdoptionUseCase");
-const AdoptionController = require("./interface/controllers/AdoptionController");
-const makeAdoptionRouter = require("./interface/routes/adoptionRoutes");
-
-const logger = new WinstonLoggerAdapter(winstonLogger);
-
-const adoptionRepository = new AdoptionMongoRepository();
-const createAdoptionUseCase = new CreateAdoptionUseCase({
-  adoptionRepository,
-  logger,
-});
-const adoptionController = new AdoptionController({ createAdoptionUseCase });
-app.use("/api/adoptions", makeAdoptionRouter(adoptionController));
