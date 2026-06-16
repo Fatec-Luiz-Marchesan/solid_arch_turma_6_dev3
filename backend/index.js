@@ -6,10 +6,12 @@ const app = express();
 app.use(express.json());
 app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 app.use(express.static("public"));
+app.use(makeHealthRouter());
 
 const PetRoutes = require("./routers/PetRouters");
 const UserRoutes = require("./routers/UserRouters");
 const ReviewRoutes = require("./routers/ReviewRouters");
+const makeHealthRouter = require('./routers/healthRoutes');
 const reviewRepository = new ReviewMongoRepository();
 const createReviewUseCase = new CreateReviewUseCase({ reviewRepository });
 const listReviewsUseCase = new ListReviewsUseCase({ reviewRepository });

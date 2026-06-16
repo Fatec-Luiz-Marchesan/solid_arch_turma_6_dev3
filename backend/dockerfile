@@ -1,0 +1,37 @@
+FROM node:20-alpine AS deps
+
+WORKDIR /app
+
+COPY backend/package*.json ./
+RUN npm ci --omit=dev
+
+FROM node:20-alpine AS build
+
+WORKDIR /app
+COPY backend/package*.json ./
+RUN npm ci
+
+COPY backend/ .
+RUN npm test
+
+FROM node:20-alpine AS runtime
+
+RUN addgroup -g 1001 -S nodejs && \
+    adduser  -u 1001 -S nodejs -G nodejs
+
+WORKDIR /app
+
+COPY --from=deps --chown=nodejs:nodejs /app/node_modules ./node_modules
+
+COPY --chown=nodejs:nodejs backend/ .
+
+RUN mkdir -p uploads logs && chown -R nodejs:nodejs uploads logs
+
+USER nodejs
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+
+EXPOSE 3000
+
+CMD ["node", "index.js"]
