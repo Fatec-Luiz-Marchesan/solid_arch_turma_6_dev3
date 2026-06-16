@@ -16,6 +16,7 @@ const SocketNotificationAdapter = require('./infrastructure/adapters/socket/Sock
 const ReviewMongoRepository = require('./infrastructure/repositories/ReviewMongoRepository');
 const CreateReviewUseCase = require('./domain/usecases/CreateReviewUseCase');
 const ReviewController = require('./interface/controllers/ReviewController');
+const makeHealthRouter = require('./interface/routes/healthRoutes');
 
 const app = express();
 
@@ -43,6 +44,8 @@ app.post('/api/reviews', (req, res) => reviewController.create(req, res));
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {console.log(`Servidor rodando em http://localhost:${PORT}`);
 console.log(`Socket.io aceitando conexoes em ws://localhost:${PORT}`);});
+
+app.use(makeHealthRouter());
 
 app.use('/api/locations', makeLocationRouter(locationController));
 
