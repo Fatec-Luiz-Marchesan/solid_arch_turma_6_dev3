@@ -4,9 +4,7 @@ const cors = require("cors");
 const app = express();
 
 app.use(express.json());
-
 app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
-
 app.use(express.static("public"));
 
 const PetRoutes = require("./routers/PetRouters");
@@ -25,33 +23,15 @@ const reviewController = new ReviewController({
   deleteReviewUseCase,
 });
 
-const {
-  getRedisClient,
-  closeRedisClient,
-} = require("./infrastructure/adapters/cache/redisClient");
+const { getRedisClient, closeRedisClient } = require("./infrastructure/adapters/cache/redisClient");
 const RedisCacheAdapter = require("./infrastructure/adapters/cache/RedisCacheAdapter");
 const ListAdminsUseCase = require("./domain/usecases/ListAdminsUseCase");
 const redisClient = getRedisClient();
 const cacheGateway = new RedisCacheAdapter(redisClient);
-const listAdminsUseCase = new ListAdminsUseCase({
-  adminRepository,
-  cacheGateway,
-});
-
-app.use("/pets", PetRoutes);
-app.use("/users", UserRoutes);
-app.use("/reviews", ReviewRoutes);
-app.use("/admins", makeAdminRouter(listAdminsUseCase));
-
-app.listen(5000);
+const listAdminsUseCase = new ListAdminsUseCase({ adminRepository, cacheGateway });
 
 const DietMongoRepository = require("./infrastructure/repositories/DietMongoRepository");
-const {
-  CreateDietUseCase,
-  GetActiveDietForPetUseCase,
-  ListDietsUseCase,
-  UpdateDietUseCase,
-} = require("./domain/usecases/CreateDietUseCase");
+const { CreateDietUseCase, GetActiveDietForPetUseCase, ListDietsUseCase, UpdateDietUseCase } = require("./domain/usecases/CreateDietUseCase");
 const DietController = require("./interface/controllers/DietController");
 const makeDietRouter = require("./interface/routes/dietRoutes");
 
@@ -59,12 +39,34 @@ const dietRepository = new DietMongoRepository();
 const dietController = new DietController({
   createDietUseCase: new CreateDietUseCase({ dietRepository }),
   listDietsUseCase: new ListDietsUseCase({ dietRepository }),
-  getActiveDietForPetUseCase: new GetActiveDietForPetUseCase({
-    dietRepository,
-  }),
+  getActiveDietForPetUseCase: new GetActiveDietForPetUseCase({ dietRepository }),
   updateDietUseCase: new UpdateDietUseCase({ dietRepository }),
 });
 
-app.use("/api/diets", makeDietRouter(dietController));
+const UserMongoRepository = require("./src/infrastructure/repositories/UserMongoRepository");
+const BcryptHashAdapter = require("./src/infrastructure/adapters/auth/BcryptHashAdapter");
+const CreateUserUseCase = require("./src/domain/usecases/CreateUserUseCase");
+const GetUserUseCase = require("./src/domain/usecases/GetUserUseCase");
+const UpdateUserUseCase = require("./src/domain/usecases/UpdateUserUseCase");
+const DeleteUserUseCase = require("./src/domain/usecases/DeleteUserUseCase");
+const NewUserController = require("./src/interface/controllers/UserController");
+const makeUserRouter = require("./src/interface/routes/userRoutes");
 
+const userRepository = new UserMongoRepository();
+const hashGateway = new BcryptHashAdapter();
+const newUserController = new NewUserController({
+  createUserUseCase: new CreateUserUseCase({ userRepository, hashGateway }),
+  getUserUseCase: new GetUserUseCase({ userRepository }),
+  updateUserUseCase: new UpdateUserUseCase({ userRepository, hashGateway }),
+  deleteUserUseCase: new DeleteUserUseCase({ userRepository }),
+});
+
+app.use("/pets", PetRoutes);
+app.use("/users", UserRoutes);
+app.use("/reviews", ReviewRoutes);
+app.use("/admins", makeAdminRouter(listAdminsUseCase));
+app.use("/api/diets", makeDietRouter(dietController));
+app.use("/api/users", makeUserRouter(newUserController));
 app.use("/uploads", express.static("uploads"));
+
+app.listen(5000);
