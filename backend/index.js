@@ -84,6 +84,9 @@ const esClient = getESClient();
 const searchGateway = new ElasticSearchAdapter(esClient);
 const searchPetsUseCase = new SearchPetsUseCase({ searchGateway });
 
+const PetController = require('./controllers/PetController');
+PetController.deps = { searchPetsUseCase, indexPetUseCase };
+
 app.get("/api/pets/search", (req, res) => petController.search(req, res));
 
 app.use("/pets", PetRoutes);

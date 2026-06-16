@@ -323,19 +323,37 @@ module.exports = class PetController {
     });
   }
 
-  async search(req, res) {
+  
+
+  static async search(req, res) {
+    const { searchPetsUseCase } = PetController.deps || {};
+    if (!searchPetsUseCase) {
+      return res.status(500).json({ message: 'ElasticSearch não configurado' });
+    }
+
     try {
-      const { q, species, city, page, limit } = req.query;
-      const result = await this.searchPetsUseCase.execute({
-        q,
-        species,
-        city,
-        page: parseInt(page, 10) || 1,
-        limit: parseInt(limit, 10) || 20,
+      const rawQ = req.query.q;
+
+      if (rawQ !== undefined && typeof rawQ !== 'string') {
+        return res.status(400).json({ message: 'q deve ser uma string' });
+      }
+
+      if (typeof rawQ === 'string' && rawQ.length > 200) {
+        return res.status(400).json({ message: 'q não pode ter mais que 200 caracteres' });
+      }
+
+      const page = parseInt(req.query.page, 10);
+      const limit = parseInt(req.query.limit, 10);
+
+      const result = await searchPetsUseCase.execute({
+        q: rawQ,
+        page: Number.isInteger(page) && page > 0 ? page : 1,
+        limit: Number.isInteger(limit) && limit > 0 && limit <= 100 ? limit : 20,
       });
+
       return res.json(result);
     } catch (err) {
-      return res.status(400).json({ error: err.message });
+      return res.status(400).json({ message: err.message });
     }
   }
 };
