@@ -23,15 +23,26 @@ const reviewController = new ReviewController({
   deleteReviewUseCase,
 });
 
-const { getRedisClient, closeRedisClient } = require("./infrastructure/adapters/cache/redisClient");
+const {
+  getRedisClient,
+  closeRedisClient,
+} = require("./infrastructure/adapters/cache/redisClient");
 const RedisCacheAdapter = require("./infrastructure/adapters/cache/RedisCacheAdapter");
 const ListAdminsUseCase = require("./domain/usecases/ListAdminsUseCase");
 const redisClient = getRedisClient();
 const cacheGateway = new RedisCacheAdapter(redisClient);
-const listAdminsUseCase = new ListAdminsUseCase({ adminRepository, cacheGateway });
+const listAdminsUseCase = new ListAdminsUseCase({
+  adminRepository,
+  cacheGateway,
+});
 
 const DietMongoRepository = require("./infrastructure/repositories/DietMongoRepository");
-const { CreateDietUseCase, GetActiveDietForPetUseCase, ListDietsUseCase, UpdateDietUseCase } = require("./domain/usecases/CreateDietUseCase");
+const {
+  CreateDietUseCase,
+  GetActiveDietForPetUseCase,
+  ListDietsUseCase,
+  UpdateDietUseCase,
+} = require("./domain/usecases/CreateDietUseCase");
 const DietController = require("./interface/controllers/DietController");
 const makeDietRouter = require("./interface/routes/dietRoutes");
 
@@ -39,7 +50,9 @@ const dietRepository = new DietMongoRepository();
 const dietController = new DietController({
   createDietUseCase: new CreateDietUseCase({ dietRepository }),
   listDietsUseCase: new ListDietsUseCase({ dietRepository }),
-  getActiveDietForPetUseCase: new GetActiveDietForPetUseCase({ dietRepository }),
+  getActiveDietForPetUseCase: new GetActiveDietForPetUseCase({
+    dietRepository,
+  }),
   updateDietUseCase: new UpdateDietUseCase({ dietRepository }),
 });
 
@@ -70,3 +83,20 @@ app.use("/api/users", makeUserRouter(newUserController));
 app.use("/uploads", express.static("uploads"));
 
 app.listen(5000);
+
+const winstonLogger = require("./infrastructure/adapters/logger/winstonLogger");
+const WinstonLoggerAdapter = require("./infrastructure/adapters/logger/WinstonLoggerAdapter");
+const AdoptionMongoRepository = require("./infrastructure/repositories/AdoptionMongoRepository");
+const CreateAdoptionUseCase = require("./domain/usecases/CreateAdoptionUseCase");
+const AdoptionController = require("./interface/controllers/AdoptionController");
+const makeAdoptionRouter = require("./interface/routes/adoptionRoutes");
+
+const logger = new WinstonLoggerAdapter(winstonLogger);
+
+const adoptionRepository = new AdoptionMongoRepository();
+const createAdoptionUseCase = new CreateAdoptionUseCase({
+  adoptionRepository,
+  logger,
+});
+const adoptionController = new AdoptionController({ createAdoptionUseCase });
+app.use("/api/adoptions", makeAdoptionRouter(adoptionController));
