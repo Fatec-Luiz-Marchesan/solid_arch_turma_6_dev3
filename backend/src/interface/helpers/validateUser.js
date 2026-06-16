@@ -1,5 +1,19 @@
 function isValidEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  if (typeof email !== 'string') return false;
+  if (email.length < 5 || email.length > 254) return false;
+  const atIndex = email.indexOf('@');
+  if (atIndex < 1 || atIndex !== email.lastIndexOf('@')) return false;
+  const local = email.slice(0, atIndex);
+  const domain = email.slice(atIndex + 1);
+  if (local.length === 0 || local.length > 64) return false;
+  if (domain.length === 0 || domain.length > 253) return false;
+  const dotIndex = domain.lastIndexOf('.');
+  if (dotIndex < 1 || dotIndex === domain.length - 1) return false;
+  for (let i = 0; i < email.length; i++) {
+    const c = email.charCodeAt(i);
+    if (c === 32 || c === 9 || c === 10 || c === 13) return false;
+  }
+  return true;
 }
 
 function isValidBRPhone(phone) {
