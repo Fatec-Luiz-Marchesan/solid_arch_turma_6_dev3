@@ -20,3 +20,5 @@ class MarkNotificationAsReadUseCase {
     return this.notificationRepository.update(id, { isRead: true });
   }
 }
+
+module.exports = MarkNotificationAsReadUseCase;

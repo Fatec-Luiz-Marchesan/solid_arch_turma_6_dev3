@@ -1,4 +1,4 @@
-const validateSettings = require("../../../src/interface/helpers/validateSettings");
+const validateSettings = require("../../src/interface/helpers/validateSettings");
 describe("validateSettings helper", () => {
   it("deve lancar erro se userId nao for fornecido", () => {
     const payload = { theme: "dark", notifications: true };
