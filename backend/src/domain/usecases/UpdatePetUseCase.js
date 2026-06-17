@@ -3,7 +3,6 @@ class UpdatePetUseCase {
     if (!petRepository) throw new Error("petRepository e obrigatorio");
     this.petRepository = petRepository;
   }
-
   async execute({ id, ...changes }) {
     if (!id) throw new Error("id e obrigatorio");
     const existing = await this.petRepository.findById(id);
@@ -13,5 +12,4 @@ class UpdatePetUseCase {
     return this.petRepository.update(id, changes);
   }
 }
-
 module.exports = UpdatePetUseCase;

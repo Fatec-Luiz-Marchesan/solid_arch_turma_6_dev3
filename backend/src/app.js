@@ -8,15 +8,15 @@ try {
   const CreateReviewUseCase = require("./domain/usecases/CreateReviewUseCase");
   const { ListReviewsUseCase, GetReviewUseCase } = require("./domain/models/ListReviewsUseCase");
   const ReviewController = require("./interface/controllers/ReviewController");
-  const reviewRepository = new ReviewMongoRepository();
-  const reviewController = new ReviewController({
-    createReviewUseCase: new CreateReviewUseCase({ reviewRepository, notificationGateway: { emit: () => {} } }),
-    listReviewsUseCase: new ListReviewsUseCase({ reviewRepository }),
-    getReviewUseCase: new GetReviewUseCase({ reviewRepository }),
+  const r = new ReviewMongoRepository();
+  const rc = new ReviewController({
+    createReviewUseCase: new CreateReviewUseCase({ reviewRepository: r, notificationGateway: { emit: () => {} } }),
+    listReviewsUseCase: new ListReviewsUseCase({ reviewRepository: r }),
+    getReviewUseCase: new GetReviewUseCase({ reviewRepository: r }),
   });
-  app.post("/api/reviews", (req, res) => reviewController.create(req, res));
-  app.get("/api/reviews", (req, res) => reviewController.list(req, res));
-  app.get("/api/reviews/:id", (req, res) => reviewController.getById(req, res));
+  app.post("/api/reviews", (req, res) => rc.create(req, res));
+  app.get("/api/reviews", (req, res) => rc.list(req, res));
+  app.get("/api/reviews/:id", (req, res) => rc.getById(req, res));
 } catch (e) {}
 
 try {
@@ -25,10 +25,10 @@ try {
   const FindNearbyLocationsUseCase = require("./domain/usecases/FindNearbyLocationsUseCase");
   const LocationController = require("./interface/controllers/LocationController");
   const makeLocationRouter = require("./interface/routes/locationRoutes");
-  const locationRepository = new LocationMongoRepository();
+  const lr = new LocationMongoRepository();
   app.use("/api/locations", makeLocationRouter(new LocationController({
-    createLocationUseCase: new CreateLocationUseCase({ locationRepository }),
-    findNearbyLocationsUseCase: new FindNearbyLocationsUseCase({ locationRepository }),
+    createLocationUseCase: new CreateLocationUseCase({ locationRepository: lr }),
+    findNearbyLocationsUseCase: new FindNearbyLocationsUseCase({ locationRepository: lr }),
   })));
 } catch (e) {}
 
@@ -39,11 +39,11 @@ try {
   const MarkNotificationAsReadUseCase = require("./domain/usecases/MarkNotificationAsReadUseCase");
   const NotificationController = require("./interface/controllers/NotificationController");
   const makeNotificationRouter = require("./interface/routes/notificationRoutes");
-  const notificationRepository = new NotificationMongoRepository();
+  const nr = new NotificationMongoRepository();
   app.use("/api/notifications", makeNotificationRouter(new NotificationController({
-    createNotificationUseCase: new CreateNotificationUseCase({ notificationRepository }),
-    listNotificationsUseCase: new ListNotificationsUseCase({ notificationRepository }),
-    markAsReadUseCase: new MarkNotificationAsReadUseCase({ notificationRepository }),
+    createNotificationUseCase: new CreateNotificationUseCase({ notificationRepository: nr }),
+    listNotificationsUseCase: new ListNotificationsUseCase({ notificationRepository: nr }),
+    markAsReadUseCase: new MarkNotificationAsReadUseCase({ notificationRepository: nr }),
   })));
 } catch (e) {}
 
@@ -52,12 +52,12 @@ try {
   const { CreateDietUseCase, GetActiveDietForPetUseCase, ListDietsUseCase, UpdateDietUseCase } = require("./domain/usecases/CreateDietUseCase");
   const DietController = require("./interface/controllers/DietController");
   const makeDietRouter = require("./interface/routes/dietRoutes");
-  const dietRepository = new DietMongoRepository();
+  const dr = new DietMongoRepository();
   app.use("/api/diets", makeDietRouter(new DietController({
-    createDietUseCase: new CreateDietUseCase({ dietRepository }),
-    listDietsUseCase: new ListDietsUseCase({ dietRepository }),
-    getActiveDietForPetUseCase: new GetActiveDietForPetUseCase({ dietRepository }),
-    updateDietUseCase: new UpdateDietUseCase({ dietRepository }),
+    createDietUseCase: new CreateDietUseCase({ dietRepository: dr }),
+    listDietsUseCase: new ListDietsUseCase({ dietRepository: dr }),
+    getActiveDietForPetUseCase: new GetActiveDietForPetUseCase({ dietRepository: dr }),
+    updateDietUseCase: new UpdateDietUseCase({ dietRepository: dr }),
   })));
 } catch (e) {}
 
@@ -79,17 +79,16 @@ try {
   const BreedMongoRepository = require("./infrastructure/repositories/BreedMongoRepository");
   const { CreateBreedUseCase, ListBreedsUseCase, GetBreedUseCase, UpdateBreedUseCase } = require("./domain/usecases/CreateBreedUseCase");
   const BreedController = require("./interface/controllers/BreedController");
-  const breedRepository = new BreedMongoRepository();
-  const breedController = new BreedController({
-    createBreedUseCase: new CreateBreedUseCase({ breedRepository }),
-    listBreedsUseCase: new ListBreedsUseCase({ breedRepository }),
-    getBreedUseCase: new GetBreedUseCase({ breedRepository }),
-    updateBreedUseCase: new UpdateBreedUseCase({ breedRepository }),
+  const br = new BreedMongoRepository();
+  const bc = new BreedController({
+    createBreedUseCase: new CreateBreedUseCase({ breedRepository: br }),
+    listBreedsUseCase: new ListBreedsUseCase({ breedRepository: br }),
+    getBreedUseCase: new GetBreedUseCase({ breedRepository: br }),
+    updateBreedUseCase: new UpdateBreedUseCase({ breedRepository: br }),
   });
-  app.post("/api/breeds", (req, res) => breedController.create(req, res));
-  app.get("/api/breeds", (req, res) => breedController.list(req, res));
-  app.get("/api/breeds/:id", (req, res) => breedController.getById(req, res));
-  app.put("/api/breeds/:id", (req, res) => breedController.update(req, res));
+  app.post("/api/breeds", (req, res) => bc.create(req, res));
+  app.get("/api/breeds", (req, res) => bc.list(req, res));
+  app.get("/api/breeds/:id", (req, res) => bc.getById(req, res));
 } catch (e) {}
 
 module.exports = app;

@@ -1,5 +1,5 @@
 const request = require('supertest');
-const app = require('../../src/app');
+const app = require('../../../src/app');
 
 describe('POST /api/breeds', () => {
 it('cria breed com campos novos (origin, lifeExpectancy)', async () => {
