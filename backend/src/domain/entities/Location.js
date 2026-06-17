@@ -32,7 +32,6 @@ class Location {
     this.address = address ? address.trim() : null;
     this.createdAt = createdAt || new Date();
   }
-
   distanceTo(otherLat, otherLng) {
     const R = 6371;
     const toRad = (deg) => (deg * Math.PI) / 180;

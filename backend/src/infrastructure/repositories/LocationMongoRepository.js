@@ -1,5 +1,5 @@
-const LocationModel = require("../models/LocationModel");
-const Location = require("../../../../domain/entities/Location");
+const LocationModel = require("../database/mongoose/models/LocationModel");
+const Location = require("../../domain/entities/Location");
 
 class LocationMongoRepository {
   async create(location) {
@@ -13,12 +13,12 @@ class LocationMongoRepository {
       referenceId: location.referenceId,
       address: location.address,
     });
-    return this._toEntity(doc);
+    return this._toPlain(doc);
   }
 
   async findById(id) {
     const doc = await LocationModel.findById(id);
-    return doc ? this._toEntity(doc) : null;
+    return doc ? this._toPlain(doc) : null;
   }
 
   async findNearby({ latitude, longitude, radiusKm, type } = {}) {
@@ -26,22 +26,21 @@ class LocationMongoRepository {
       location: {
         $near: {
           $geometry: { type: "Point", coordinates: [longitude, latitude] },
-          $maxDistance: radiusKm * 1000, // metros
+          $maxDistance: radiusKm * 1000,
         },
       },
     };
     if (type) query.type = type;
-
     const docs = await LocationModel.find(query).limit(50);
-    return docs.map((d) => this._toEntity(d));
+    return docs.map((d) => this._toPlain(d));
   }
 
   async delete(id) {
     await LocationModel.findByIdAndDelete(id);
   }
 
-  _toEntity(doc) {
-    return new Location({
+  _toPlain(doc) {
+    return {
       id: doc._id.toString(),
       name: doc.name,
       latitude: doc.location.coordinates[1],
@@ -50,7 +49,7 @@ class LocationMongoRepository {
       referenceId: doc.referenceId.toString(),
       address: doc.address,
       createdAt: doc.createdAt,
-    });
+    };
   }
 }
 

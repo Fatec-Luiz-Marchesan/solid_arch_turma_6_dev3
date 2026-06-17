@@ -1,7 +1,7 @@
 const request = require("supertest");
 const { MongoMemoryServer } = require("mongodb-memory-server");
 const mongoose = require("mongoose");
-const app = require("../../src/app");
+const app = require('../../../src/app');
 
 describe("Diet API — Testes de Integracao", () => {
   let mongoServer;

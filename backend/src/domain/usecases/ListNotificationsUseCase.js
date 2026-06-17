@@ -19,8 +19,4 @@ class ListNotificationsUseCase {
   }
 }
 
-module.exports = {
-  CreateNotificationUseCase,
-  MarkNotificationAsReadUseCase,
-  ListNotificationsUseCase,
-};
+module.exports = ListNotificationsUseCase;

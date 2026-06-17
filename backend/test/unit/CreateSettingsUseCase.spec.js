@@ -1,4 +1,4 @@
-const CreateSettingsUseCase = require("../../../src/domain/usecases/settings/CreateSettingsUseCase");
+const CreateSettingsUseCase = require("../../src/domain/usecases/settings/CreateSettingsUseCase");
 describe("CreateSettingsUseCase", () => {
   it("deve chamar o repositorio com os dados corretos", async () => {
     const mockRepo = { create: jest.fn().mockResolvedValue({ id: "1" }) };

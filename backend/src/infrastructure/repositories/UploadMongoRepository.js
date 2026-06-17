@@ -14,4 +14,4 @@ class UploadMongoRepository {
   }
 }
 
-module.exports = UploadMongoReposito;
+module.exports = UploadMongoRepository;

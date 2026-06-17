@@ -1,38 +1,37 @@
-const UpdateSettingsUseCase = require("../../../src/domain/usecases/UpdateSettingsUseCase");
+const UpdateSettingsUseCase = require("../../src/domain/usecases/UpdateSettingsUseCase");
 
 describe("UpdateSettingsUseCase", () => {
-  it("deve atualizar apenas os campos enviados", async () => {
-    const existing = { userId: "abc123", theme: "light", notifications: true };
-    const mockRepo = {
-      update: jest.fn().mockResolvedValue({ ...existing, theme: "dark" }),
+  let settingsRepository, usecase;
+
+  beforeEach(() => {
+    settingsRepository = {
+      update: jest
+        .fn()
+        .mockImplementation(async (input) => ({ id: "s-1", ...input })),
     };
-    const useCase = new UpdateSettingsUseCase(mockRepo);
-
-    const result = await useCase.execute({ userId: "abc123", theme: "dark" });
-
-    expect(mockRepo.update).toHaveBeenCalledWith({
-      userId: "abc123",
-      theme: "dark",
-    });
-    expect(result.theme).toBe("dark");
-    expect(result.notifications).toBe(true);
+    usecase = new UpdateSettingsUseCase(settingsRepository);
   });
 
-  it("deve lancar erro se o repositorio falhar", async () => {
-    const mockRepo = {
-      update: jest.fn().mockRejectedValue(new Error("DB error")),
-    };
-    const useCase = new UpdateSettingsUseCase(mockRepo);
+  it("atualiza settings com sucesso", async () => {
+    const input = { userId: "user-1", theme: "dark", notifications: false };
+    const result = await usecase.execute(input);
+    expect(settingsRepository.update).toHaveBeenCalledWith(input);
+    expect(result).toHaveProperty("userId", "user-1");
+  });
 
-    await expect(useCase.execute({ userId: "abc123" })).rejects.toThrow(
-      "DB error",
+  it("rejeita userId ausente", async () => {
+    await expect(
+      usecase.execute({ theme: "dark" }),
+    ).rejects.toThrow("userId e obrigatorio");
+  });
+
+  it("rejeita input nulo", async () => {
+    await expect(usecase.execute(null)).rejects.toThrow("userId e obrigatorio");
+  });
+
+  it("lanca erro se settingsRepository nao for fornecido", () => {
+    expect(() => new UpdateSettingsUseCase(null)).toThrow(
+      "settingsRepository e obrigatorio",
     );
-  });
-
-  it("deve lancar erro se userId nao for informado", async () => {
-    const mockRepo = { update: jest.fn() };
-    const useCase = new UpdateSettingsUseCase(mockRepo);
-
-    await expect(useCase.execute({})).rejects.toThrow();
   });
 });

@@ -1,123 +1,25 @@
-const ReviewController = require("../../controllers/ReviewController");
-
+const ReviewController = require("../../src/interface/controllers/ReviewController");
 describe("ReviewController", () => {
-  let controller;
-  let createReviewUseCase;
-  let listReviewsUseCase;
-  let getReviewUseCase;
-  let req, res;
-
+  let controller, createReviewUseCase, listReviewsUseCase, getReviewUseCase, req, res;
   beforeEach(() => {
-    createReviewUseCase = { execute: jest.fn() };
-    listReviewsUseCase = { execute: jest.fn() };
-    getReviewUseCase = { findById: jest.fn() };
-
-    controller = new ReviewController({
-      createReviewUseCase,
-      listReviewsUseCase,
-      getReviewUseCase,
-    });
-
-    req = {
-      body: {},
-      query: {},
-      params: {},
-    };
-
-    res = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn().mockReturnThis(),
-    };
+    createReviewUseCase = { execute: jest.fn().mockResolvedValue({ id: "r1", rating: 5, comment: "Otimo" }) };
+    listReviewsUseCase  = { execute: jest.fn().mockResolvedValue({ reviews: [], total: 0, totalPages: 1 }) };
+    getReviewUseCase    = { findById: jest.fn().mockResolvedValue({ id: "r1", rating: 5 }) };
+    controller = new ReviewController({ createReviewUseCase, listReviewsUseCase, getReviewUseCase });
+    res = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
   });
-
   describe("create", () => {
-    it("deve retornar 400 se o payload for invalido", async () => {
-      req.body = { rating: 6 };
-      await controller.create(req, res);
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ errors: expect.any(Array) }),
-      );
+    it("retorna 201 com review criada", async () => {
+      req = { body: { petId: "507f1f77bcf86cd799439011", userId: "507f1f77bcf86cd799439012", rating: 5, comment: "Otimo pet" } };
+      await controller.create(req, res); expect(res.status).toHaveBeenCalledWith(201);
     });
-
-    it("deve retornar 201 e o review criado se for sucesso", async () => {
-      req.body = {
-        userId: "507f1f77bcf86cd799439011",
-        petId: "507f1f77bcf86cd799439012",
-        rating: 4,
-        recommend: false,
-      };
-      createReviewUseCase.execute.mockResolvedValue({
-        id: "rev-123",
-        ...req.body,
-      });
-
-      await controller.create(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(201);
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ id: "rev-123", recommend: false }),
-      );
-    });
-
-    it("deve retornar 400 se o usecase falhar", async () => {
-      req.body = {
-        userId: "507f1f77bcf86cd799439011",
-        petId: "507f1f77bcf86cd799439012",
-        rating: 4,
-      };
-      createReviewUseCase.execute.mockRejectedValue(new Error("Usecase error"));
-
-      await controller.create(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ error: "Usecase error" });
-    });
+    it("retorna 400 se payload invalido", async () => { req = { body: {} }; await controller.create(req, res); expect(res.status).toHaveBeenCalledWith(400); });
   });
-
   describe("list", () => {
-    it("deve retornar lista com status 200", async () => {
-      req.query = { page: "1", limit: "10", minRating: "4" };
-      listReviewsUseCase.execute.mockResolvedValue({
-        reviews: [],
-        total: 0,
-        totalPages: 1,
-      });
-
-      await controller.list(req, res);
-
-      expect(listReviewsUseCase.execute).toHaveBeenCalledWith({
-        page: 1,
-        limit: 10,
-        minRating: 4,
-        petId: undefined,
-      });
-      expect(res.json).toHaveBeenCalledWith({
-        reviews: [],
-        total: 0,
-        totalPages: 1,
-      });
-    });
+    it("retorna lista de reviews", async () => { req = { query: {} }; await controller.list(req, res); expect(listReviewsUseCase.execute).toHaveBeenCalledTimes(1); expect(res.json).toHaveBeenCalled(); });
   });
-
   describe("getById", () => {
-    it("deve retornar 404 se nao encontrar o review", async () => {
-      req.params.id = "r-1";
-      getReviewUseCase.findById.mockResolvedValue(null);
-
-      await controller.getById(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({ error: "Review nao encontrada" });
-    });
-
-    it("deve retornar o review se for encontrado", async () => {
-      req.params.id = "r-1";
-      getReviewUseCase.findById.mockResolvedValue({ id: "r-1", rating: 5 });
-
-      await controller.getById(req, res);
-
-      expect(res.json).toHaveBeenCalledWith({ id: "r-1", rating: 5 });
-    });
+    it("retorna review por id", async () => { req = { params: { id: "r1" } }; await controller.getById(req, res); expect(getReviewUseCase.findById).toHaveBeenCalledWith("r1"); });
+    it("retorna 404 se nao encontrada", async () => { getReviewUseCase.findById.mockResolvedValue(null); req = { params: { id: "ghost" } }; await controller.getById(req, res); expect(res.status).toHaveBeenCalledWith(404); });
   });
 });

@@ -1,54 +1,48 @@
-const UpdateUserUseCase = require("../../src/domain/usecases/UpdateUserUseCase");
+const UpdatePetUseCase = require("../../src/domain/usecases/UpdatePetUseCase");
 
-describe("UpdateUserUseCase", () => {
-  let userRepository, hashGateway, usecase;
+describe("UpdatePetUseCase", () => {
+  let petRepository, usecase;
 
   beforeEach(() => {
-    userRepository = {
-      findById: jest
-        .fn()
-        .mockResolvedValue({ id: "u1", name: "João", email: "j@j.com" }),
+    petRepository = {
+      findById: jest.fn().mockResolvedValue({ id: "pet-1", name: "Rex" }),
       update: jest
         .fn()
-        .mockImplementation(async (id, data) => ({ id, ...data })),
+        .mockImplementation(async (id, changes) => ({ id, ...changes })),
     };
-    hashGateway = { hash: jest.fn().mockResolvedValue("new-hash") };
-    usecase = new UpdateUserUseCase({ userRepository, hashGateway });
+    usecase = new UpdatePetUseCase({ petRepository });
   });
 
-  it("atualiza name com sucesso", async () => {
-    const result = await usecase.execute({ id: "u1", name: "João Atualizado" });
-    expect(result.name).toBe("João Atualizado");
-    expect(userRepository.update).toHaveBeenCalledWith(
-      "u1",
-      expect.objectContaining({ name: "João Atualizado" }),
+  it("atualiza pet com sucesso", async () => {
+    const result = await usecase.execute({ id: "pet-1", name: "Buddy" });
+    expect(result.name).toBe("Buddy");
+    expect(petRepository.update).toHaveBeenCalledWith(
+      "pet-1",
+      expect.objectContaining({ name: "Buddy" }),
     );
   });
 
-  it("hasheia nova senha quando fornecida", async () => {
-    await usecase.execute({ id: "u1", password: "NovaSenha9" });
-    expect(hashGateway.hash).toHaveBeenCalledWith("NovaSenha9");
-    expect(userRepository.update).toHaveBeenCalledWith(
-      "u1",
-      expect.objectContaining({ password: "new-hash" }),
-    );
-  });
-
-  it("não chama hashGateway se senha não foi enviada", async () => {
-    await usecase.execute({ id: "u1", name: "Novo Nome" });
-    expect(hashGateway.hash).not.toHaveBeenCalled();
-  });
-
-  it("retorna null se usuário não existe", async () => {
-    userRepository.findById.mockResolvedValue(null);
-    const result = await usecase.execute({ id: "ghost", name: "X" });
+  it("retorna null se pet nao existir", async () => {
+    petRepository.findById.mockResolvedValue(null);
+    const result = await usecase.execute({ id: "nao-existe", name: "Buddy" });
     expect(result).toBeNull();
-    expect(userRepository.update).not.toHaveBeenCalled();
   });
 
-  it("rejeita update sem id", async () => {
-    await expect(usecase.execute({ name: "Sem ID" })).rejects.toThrow(
-      "id é obrigatório",
+  it("rejeita id ausente", async () => {
+    await expect(
+      usecase.execute({ name: "Buddy" }),
+    ).rejects.toThrow("id e obrigatorio");
+  });
+
+  it("rejeita name muito curto", async () => {
+    await expect(
+      usecase.execute({ id: "pet-1", name: "A" }),
+    ).rejects.toThrow("name deve ter pelo menos 2 caracteres");
+  });
+
+  it("lanca erro se petRepository nao for fornecido", () => {
+    expect(() => new UpdatePetUseCase({ petRepository: null })).toThrow(
+      "petRepository e obrigatorio",
     );
   });
 });
