@@ -8,13 +8,13 @@ class CreateNotificationUseCase {
   }
 
   async execute({ userId, type, title, message, metadata }) {
-    const notification = new Notification({
-      userId,
-      type,
-      title,
-      message,
-      metadata,
+    const n = new Notification({ userId, type, title, message, metadata });
+    return this.notificationRepository.create({
+      userId: n.userId, type: n.type, title: n.title,
+      message: n.message, isRead: n.isRead,
+      metadata: n.metadata, createdAt: n.createdAt,
     });
-    return this.notificationRepository.create(notification);
   }
 }
+
+module.exports = CreateNotificationUseCase;
