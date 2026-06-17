@@ -1,66 +1,64 @@
-const CreateLocationUseCase = require('../../src/domain/usecases/CreateLocationUseCase');
+const CreateLocationUseCase = require("../../src/domain/usecases/CreateLocationUseCase");
 
-describe('CreateLocationUseCase', () => {
-  let repo, usecase;
+describe("CreateLocationUseCase", () => {
+  let locationRepository, usecase;
+
   const validInput = {
-  name: 'Parque Ibirapuera', latitude: -23.587, longitude: -46.657,
-  type: 'event', referenceId: 'event-1',
-};
+    name: "Parque Ibirapuera",
+    latitude: -23.587,
+    longitude: -46.657,
+    type: "event",
+    referenceId: "event-1",
+  };
+
   beforeEach(() => {
-    repo = { create: jest.fn().mockImplementation(loc => ({ id: 'l1', ...loc })) };
-    usecase = new CreateLocationUseCase({ locationRepository: repo });
+    locationRepository = {
+      create: jest
+        .fn()
+        .mockImplementation(async (l) => ({ id: "loc-1", ...l })),
+    };
+    usecase = new CreateLocationUseCase({ locationRepository });
   });
 
-  it('cria uma location valida', async () => {
-    const result = await usecase.execute({
-      name: 'Parque Central', latitude: -23.5, longitude: -46.6,
-      type: 'event', referenceId: 'e1',
-    });
-    expect(result.id).toBe('l1');
-    expect(repo.create).toHaveBeenCalledTimes(1);
+  it("cria location valida", async () => {
+    const result = await usecase.execute(validInput);
+    expect(result.id).toBe("loc-1");
+    expect(result.name).toBe("Parque Ibirapuera");
+    expect(locationRepository.create).toHaveBeenCalledTimes(1);
   });
 
-  it('rejeita latitude invalida', async () => {
-    await expect(usecase.execute({
-      name: 'Parque', latitude: 200, longitude: 0, type: 'event', referenceId: 'e1',
-    })).rejects.toThrow('latitude deve estar entre -90 e 90');
+  it("rejeita latitude acima de 90", async () => {
+    await expect(
+      usecase.execute({ ...validInput, latitude: 95 }),
+    ).rejects.toThrow("latitude deve estar entre -90 e 90");
   });
 
-  it('rejeita type invalido', async () => {
-    await expect(usecase.execute({
-      name: 'Parque', latitude: 0, longitude: 0, type: 'banco', referenceId: 'e1',
-    })).rejects.toThrow('type deve ser pet, event ou user');
+  it("rejeita longitude abaixo de -180", async () => {
+    await expect(
+      usecase.execute({ ...validInput, longitude: -200 }),
+    ).rejects.toThrow("longitude deve estar entre -180 e 180");
   });
-  
-it('rejeita latitude abaixo de -90', async () => {
-  await expect(usecase.execute({
-    ...validInput,
-    latitude: -95
-  })).rejects.toThrow('latitude'); 
-});
 
-it('rejeita longitude acima de 180', async () => {
-  await expect(usecase.execute({
-    ...validInput,
-    longitude: 200
-  })).rejects.toThrow('longitude');
-});
+  it("rejeita type invalido", async () => {
+    await expect(
+      usecase.execute({ ...validInput, type: "banco" }),
+    ).rejects.toThrow("type invalido");
+  });
 
-it('rejeita name com menos de 2 caracteres', async () => {
-  await expect(usecase.execute({
-    ...validInput,
-    name: 'A'
-  })).rejects.toThrow('min 2 caracteres'); 
-});
+  it("rejeita name muito curto", async () => {
+    await expect(usecase.execute({ ...validInput, name: "A" })).rejects.toThrow(
+      "min 2 caracteres",
+    );
+  });
 
-it('rejeita quando referenceId está ausente', async () => {
-  const { referenceId, ...inputSemRef } = validInput;
-  await expect(usecase.execute(inputSemRef))
-    .rejects.toThrow('referenceId');
-});
+  it("rejeita sem referenceId", async () => {
+    const { referenceId, ...sem } = validInput;
+    await expect(usecase.execute(sem)).rejects.toThrow("referenceId");
+  });
 
-it('lança erro se locationRepository não for fornecido', () => {
-  expect(() => new CreateLocationUseCase({}))
-    .toThrow('locationRepository e obrigatorio');
-});
+  it("lanca erro sem locationRepository", () => {
+    expect(() => new CreateLocationUseCase({})).toThrow(
+      "locationRepository e obrigatorio",
+    );
+  });
 });
