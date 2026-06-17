@@ -13,3 +13,4 @@ class CreateLocationUseCase {
 }
 
 module.exports = CreateLocationUseCase;
+module.exports.FindNearbyLocationsUseCase = FindNearbyLocationsUseCase;
